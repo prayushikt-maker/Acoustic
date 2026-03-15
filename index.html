@@ -586,11 +586,11 @@ HEADLINE_5: [fifth — max 12 words]
 
 ART1_TITLE: [article headline max 12 words]
 ART1_SOURCE: [source name — infer from URL domain]
-ART1_B1: [Specific who/what/how much — the core fact]
-ART1_B2: [Context — why this happened or what triggered it]
-ART1_B3: [Business/strategic implication — what does this mean for the industry]
-ART1_B4: [India angle — how does this affect India specifically, or Indian companies]
-ART1_B5: [What to watch — next development or open question]
+ART1_B1: [Core fact — be specific: exact company, person, number, %, ₹/$ amount, date]
+ART1_B2: [Context — 1 sentence explaining what led to this or the broader trend it fits into]
+ART1_B3: [Strategic implication — what this means for the industry, competitors, or market structure]
+ART1_B4: [India angle — specific impact on Indian market, companies, or consumers. If no India angle, write the most relevant global implication]
+ART1_B5: [Forward look — one specific thing to watch: a date, a decision, a company's next move]
 ART1_URL: [URL from articles above, or blank]
 
 ART2_TITLE: [article headline max 12 words]
@@ -622,12 +622,12 @@ ART4_URL: [URL]
 
 ART5_TITLE: [article headline max 12 words]
 ART5_SOURCE: [source name]
-ART5_B1: [core fact]
-ART5_B2: [context]
-ART5_B3: [implication]
-ART5_B4: [India angle]
-ART5_B5: [what to watch]
-ART5_URL: [URL]`,1400);
+ART5_B1: [Core fact — who did what, exact number or name]
+ART5_B2: [Background context — what led to this, what is the broader trend]
+ART5_B3: [Strategic/business implication — what this means for the industry or company]
+ART5_B4: [India angle — specific impact on India, Indian companies, or Indian economy]
+ART5_B5: [What to watch next — one specific thing to track in coming days/weeks]
+ART5_URL: [URL]`,1600);
 
       const get=k=>raw.match(new RegExp(k+':\\s*(.+)'))?.[1]?.trim()||'';
       const headlines=[1,2,3,4,5].map(i=>get(`HEADLINE_${i}`)).filter(Boolean);
@@ -669,7 +669,10 @@ function renderBrief(dives,rabbit){
         <div class="artcard-hdr" onclick="toggleArt('ab${i}${ai}','at${i}${ai}')">
           <div class="adot"></div>
           <div class="atitle-wrap">
-            ${a.src?`<div class="asource">${a.src}</div>`:''}
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+              ${a.src?`<span class="asource">${a.src}</span>`:''}
+              ${a.url?`<a class="alink" href="${a.url}" target="_blank" onclick="event.stopPropagation()" style="font-size:9px;opacity:.7">↗ Read</a>`:''}
+            </div>
             <div class="ahl">${a.title}</div>
           </div>
           <span class="atoggle" id="at${i}${ai}">▾</span>

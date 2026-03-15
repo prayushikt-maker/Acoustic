@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Acoustic">
+<meta name="theme-color" content="#0a0907">
+<title>Acoustic</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0a0907;--paper:#f5f1e8;--muted:#7a7060;--accent:#c8783a;--faint:#2a2420}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--ink);color:var(--paper);font-family:'DM Sans',sans-serif;min-height:100vh}
+#setup{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px}
+.logo{font-family:'Playfair Display',serif;font-size:48px;letter-spacing:-2px;color:var(--paper);margin-bottom:4px}
+.tagline{font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:.15em;text-transform:uppercase;margin-bottom:48px}
+.card{background:#161310;border:.5px solid var(--faint);border-radius:16px;padding:28px 24px;width:100%;max-width:400px}
+.label{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;display:block}
+.inp{width:100%;background:#0a0907;border:.5px solid var(--faint);border-radius:10px;padding:14px 16px;font-size:14px;font-family:'DM Mono',monospace;color:var(--accent);outline:none;margin-bottom:16px;transition:border-color .2s}
+.inp:focus{border-color:var(--accent)}
+.inp::placeholder{color:#3a3428}
+.hint{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:24px}
+.hint a{color:var(--accent);text-decoration:none}
+.btn{width:100%;background:var(--accent);color:var(--ink);font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;padding:15px;border-radius:10px;border:none;cursor:pointer;transition:all .2s}
+.btn:hover{background:#d4854a}
+.btn:disabled{background:var(--faint);color:var(--muted);cursor:not-allowed}
+#app{display:none;min-height:100vh}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(10,9,7,.95);backdrop-filter:blur(12px);padding:16px 20px 12px;border-bottom:.5px solid var(--faint);display:flex;align-items:center;justify-content:space-between}
+.top-logo{font-family:'Playfair Display',serif;font-size:22px;letter-spacing:-0.5px}
+.top-right{display:flex;align-items:center;gap:12px}
+.date{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:.06em}
+.gen-btn{background:var(--accent);color:var(--ink);font-size:12px;font-weight:500;padding:7px 16px;border-radius:20px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;white-space:nowrap}
+.gen-btn:hover{background:#d4854a}
+.gen-btn:disabled{background:var(--faint);color:var(--muted);cursor:not-allowed}
+.cog{background:transparent;border:none;cursor:pointer;color:var(--muted);font-size:16px;transition:color .2s}
+.cog:hover{color:var(--paper)}
+#briefTab{padding-bottom:80px}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 32px;text-align:center}
+.empty-word{font-family:'Playfair Display',serif;font-size:72px;color:#161310;letter-spacing:-3px;line-height:1;margin-bottom:20px}
+.empty-sub{font-size:14px;color:var(--muted);line-height:1.8;max-width:260px;margin-bottom:32px}
+.empty-btn{background:var(--accent);color:var(--ink);font-size:14px;font-weight:500;padding:14px 28px;border-radius:10px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif}
+#briefContent{display:none}
+.signal-wrap{background:#0d0b08;border-bottom:.5px solid var(--faint);padding:24px 20px}
+.kicker{font-size:10px;font-family:'DM Mono',monospace;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.kicker::after{content:'';flex:1;height:.5px;background:var(--faint)}
+.signal-text{font-family:'Playfair Display',serif;font-size:16px;line-height:1.9;color:#d4cfc2;font-style:italic}
+.dive-card{border-bottom:.5px solid #161310;padding:24px 20px}
+.dive-topic{font-size:10px;font-family:'DM Mono',monospace;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.dive-headline{font-family:'Playfair Display',serif;font-size:20px;line-height:1.3;color:var(--paper);margin-bottom:14px;letter-spacing:-.3px}
+.dive-body{font-size:15px;line-height:1.85;color:#a89f8c;margin-bottom:16px}
+.dive-footer{display:flex;align-items:center;justify-content:space-between;padding-top:14px;border-top:.5px solid #161310}
+.read-link{font-size:12px;color:var(--accent);font-family:'DM Mono',monospace;text-decoration:none}
+.save-btn{background:transparent;border:.5px solid var(--faint);color:var(--muted);font-size:11px;font-family:'DM Mono',monospace;padding:5px 12px;border-radius:20px;cursor:pointer;transition:all .2s}
+.save-btn:hover{border-color:var(--accent);color:var(--accent)}
+.rabbit-wrap{background:#0d0b08;padding:28px 20px;border-top:.5px solid var(--faint)}
+.rabbit-label{font-size:10px;font-family:'DM Mono',monospace;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.rabbit-topic{font-family:'Playfair Display',serif;font-size:13px;color:var(--accent);font-style:italic;margin-bottom:16px}
+.rabbit-body{font-family:'Playfair Display',serif;font-size:16px;line-height:2;color:#c4bfb0;font-style:italic}
+#ytTab{display:none;padding:24px 20px 80px}
+.yt-wrap{background:#141008;border:.5px solid var(--faint);border-radius:14px;padding:16px;margin-bottom:16px}
+.yt-inp{width:100%;background:transparent;border:none;outline:none;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--paper)}
+.yt-inp::placeholder{color:#3a3428}
+.yt-foot{display:flex;justify-content:flex-end;margin-top:12px;padding-top:12px;border-top:.5px solid #161310}
+.yt-card{background:#0d0b08;border:.5px solid var(--faint);border-radius:14px;overflow:hidden;margin-bottom:12px}
+.yt-head{padding:12px 16px;border-bottom:.5px solid #161310;display:flex;align-items:center;justify-content:space-between}
+.yt-label{font-size:10px;font-family:'DM Mono',monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.yt-body{padding:16px}
+.yt-sh{font-size:10px;font-family:'DM Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:12px 0 6px}
+.yt-sh:first-child{margin-top:0}
+.yt-bullet{font-size:14px;color:#a89f8c;line-height:1.7;padding:4px 0 4px 14px;position:relative}
+.yt-bullet::before{content:'—';position:absolute;left:0;color:#3a3428}
+.verdict{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-family:'DM Mono',monospace;margin-top:6px}
+.v-yes{background:#0d1a0a;color:#6db56a;border:.5px solid #2a4a28}
+.v-no{background:#1a0d0a;color:#c46060;border:.5px solid #4a2a28}
+.bnav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,9,7,.97);border-top:.5px solid #161310;display:flex;padding:10px 0 20px;z-index:100}
+.nitem{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:6px 0}
+.nico{font-size:18px;filter:grayscale(1);opacity:.4;transition:all .2s}
+.nlabel{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace}
+.nitem.active .nico{filter:none;opacity:1}
+.nitem.active .nlabel{color:var(--accent)}
+.overlay{display:none;position:fixed;inset:0;background:rgba(10,9,7,.92);z-index:200;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.overlay.show{display:flex}
+.ow{font-family:'Playfair Display',serif;font-size:28px;color:var(--paper);opacity:0;animation:fw 3s infinite}
+@keyframes fw{0%,100%{opacity:0}20%,80%{opacity:1}}
+.obar{width:180px;height:1px;background:var(--faint);position:relative;overflow:hidden;border-radius:1px}
+.ofill{position:absolute;left:-100%;top:0;width:100%;height:100%;background:var(--accent);animation:sl 1.5s ease-in-out infinite}
+@keyframes sl{to{left:100%}}
+.omsg{font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:.05em}
+#settings{display:none;position:fixed;inset:0;background:rgba(10,9,7,.96);z-index:300;overflow-y:auto;padding:32px 24px}
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px}
+.st{font-family:'Playfair Display',serif;font-size:24px}
+.cl{background:transparent;border:.5px solid var(--faint);color:var(--muted);font-size:13px;padding:6px 14px;border-radius:20px;cursor:pointer;font-family:'DM Mono',monospace}
+.ssl{font-size:10px;font-family:'DM Mono',monospace;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.nrow{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:.5px solid #161310}
+.nl{font-size:14px;color:var(--paper)}
+.ns{font-size:12px;color:var(--muted);margin-top:2px}
+.tog{width:44px;height:24px;background:var(--faint);border-radius:12px;position:relative;cursor:pointer;border:none;transition:background .2s}
+.tog.on{background:var(--accent)}
+.tog::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;background:white;border-radius:50%;transition:transform .2s}
+.tog.on::after{transform:translateX(20px)}
+.spin{width:14px;height:14px;border:1.5px solid var(--faint);border-top-color:var(--accent);border-radius:50%;animation:sp .8s linear infinite;display:inline-block}
+@keyframes sp{to{transform:rotate(360deg)}}
+.err{padding:14px 16px;background:#1a0d0a;border:.5px solid #4a2a28;border-radius:10px;font-size:13px;color:#c46060;font-family:'DM Mono',monospace;line-height:1.6}
+@media(max-width:400px){.dive-headline{font-size:18px}.signal-text{font-size:15px}}
+</style>
+</head>
+<body>
+
+<div id="setup">
+  <div class="logo">Acoustic</div>
+  <div class="tagline">Your daily intelligence brief</div>
+  <div class="card">
+    <label class="label">Groq API Key</label>
+    <input class="inp" type="password" id="setupKey" placeholder="gsk_..." autocomplete="off">
+    <p class="hint">Free from <a href="https://console.groq.com" target="_blank">console.groq.com</a> — sign in, click API Keys, create key. Starts with gsk_</p>
+    <button class="btn" onclick="startApp()">Enter Acoustic →</button>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="ow" id="ow">Reading...</div>
+  <div class="obar"><div class="ofill"></div></div>
+  <div class="omsg" id="omsg">fetching your sources</div>
+</div>
+
+<div id="settings">
+  <div class="sh">
+    <div class="st">Settings</div>
+    <button class="cl" onclick="closeSettings()">close</button>
+  </div>
+  <div class="ssl" style="margin-bottom:12px">Groq API Key</div>
+  <input class="inp" type="password" id="sKey" placeholder="gsk_...">
+  <div class="ssl">Notifications</div>
+  <div class="nrow">
+    <div><div class="nl">Morning Brief</div><div class="ns">Daily at 8:00 AM</div></div>
+    <button class="tog" id="ntog" onclick="toggleNotif()"></button>
+  </div>
+  <div class="ssl" style="margin-top:20px">Notion Token (optional)</div>
+  <input class="inp" type="password" id="sNotion" placeholder="secret_...">
+  <button class="btn" onclick="saveSettings()">Save</button>
+</div>
+
+<div id="app">
+  <div class="topbar">
+    <div class="top-logo">Acoustic</div>
+    <div class="top-right">
+      <div class="date" id="topDate"></div>
+      <button class="gen-btn" id="genBtn" onclick="generateBrief()">Generate Brief</button>
+      <button class="cog" onclick="openSettings()">⚙</button>
+    </div>
+  </div>
+
+  <div id="briefTab">
+    <div class="empty" id="emptyState">
+      <div class="empty-word">Acoustic</div>
+      <div class="empty-sub">Your daily brief — curated, distilled, delivered in 10 minutes.</div>
+      <button class="empty-btn" onclick="generateBrief()">Generate Today's Brief →</button>
+    </div>
+    <div id="briefContent"></div>
+  </div>
+
+  <div id="ytTab">
+    <div class="yt-wrap">
+      <input class="yt-inp" type="url" id="ytUrl" placeholder="Paste a YouTube link to summarise...">
+      <div class="yt-foot">
+        <button class="gen-btn" onclick="summariseYT()" id="ytBtn">Summarise</button>
+      </div>
+    </div>
+    <div id="ytResult"></div>
+  </div>
+
+  <div class="bnav">
+    <div class="nitem active" id="nav-brief" onclick="switchTab('brief')">
+      <div class="nico">◈</div><div class="nlabel">Brief</div>
+    </div>
+    <div class="nitem" id="nav-yt" onclick="switchTab('yt')">
+      <div class="nico">▶</div><div class="nlabel">YouTube</div>
+    </div>
+    <div class="nitem" id="nav-s" onclick="openSettings()">
+      <div class="nico">⚙</div><div class="nlabel">Settings</div>
+    </div>
+  </div>
+</div>
+
+<script>
+let apiKey='', notionToken='', notifOn=false;
+
+const TOPICS=[
+  ['AI & Business','FMCG & Consumer','Supply Chain'],
+  ['FMCG & Consumer','Supply Chain','Geopolitics & Macro'],
+  ['Supply Chain','Geopolitics & Macro','AI & Business'],
+  ['Geopolitics & Macro','AI & Business','FMCG & Consumer']
+];
+const CURIOUS=['Game Theory','Mathematics','Space','Poetry','Art','Philosophy','Neuroscience'];
+const WORDS=['Reading...','Filtering...','Thinking...','Weaving...','Almost...'];
+const RSS={
+  'AI & Business':['https://api.allorigins.win/raw?url=https://feeds.feedburner.com/TechnologyReview','https://api.allorigins.win/raw?url=https://stratechery.com/feed/','https://api.allorigins.win/raw?url=https://inc42.com/feed/'],
+  'FMCG & Consumer':['https://api.allorigins.win/raw?url=https://hbr.org/feed','https://api.allorigins.win/raw?url=https://www.livemint.com/rss/companies'],
+  'Supply Chain':['https://api.allorigins.win/raw?url=https://www.freightwaves.com/feed'],
+  'Geopolitics & Macro':['https://api.allorigins.win/raw?url=https://www.project-syndicate.org/rss','https://api.allorigins.win/raw?url=https://www.thehindu.com/opinion/editorial/feeder/default.rss'],
+  'Game Theory':['https://api.allorigins.win/raw?url=https://aeon.co/feed.rss'],
+  'Mathematics':['https://api.allorigins.win/raw?url=https://www.quantamagazine.org/feed/'],
+  'Space':['https://api.allorigins.win/raw?url=https://www.nasa.gov/rss/dyn/breaking_news.rss'],
+  'Poetry':['https://api.allorigins.win/raw?url=https://www.poetryfoundation.org/feeds/poems.rss'],
+  'Art':['https://api.allorigins.win/raw?url=https://www.theguardian.com/artanddesign/rss'],
+  'Philosophy':['https://api.allorigins.win/raw?url=https://aeon.co/feed.rss'],
+  'Neuroscience':['https://api.allorigins.win/raw?url=https://www.quantamagazine.org/feed/']
+};
+
+let wi=0, wt;
+
+window.addEventListener('load',()=>{
+  const k=localStorage.getItem('acoustic_key');
+  const n=localStorage.getItem('acoustic_notion');
+  if(k){apiKey=k;showApp();}
+  if(n)notionToken=n;
+  setDate();
+  const saved=localStorage.getItem('acoustic_brief_'+todayKey());
+  if(saved&&document.getElementById('briefContent')){
+    document.getElementById('briefContent').innerHTML=saved;
+    document.getElementById('briefContent').style.display='block';
+    document.getElementById('emptyState').style.display='none';
+  }
+});
+
+function todayKey(){return new Date().toISOString().split('T')[0]}
+function setDate(){
+  const d=new Date().toLocaleDateString('en-IN',{weekday:'short',month:'short',day:'numeric'}).toUpperCase();
+  const el=document.getElementById('topDate');
+  if(el)el.textContent=d;
+}
+function startApp(){
+  const k=document.getElementById('setupKey').value.trim();
+  if(!k||k.length<10)return;
+  apiKey=k;
+  localStorage.setItem('acoustic_key',k);
+  showApp();
+}
+function showApp(){
+  document.getElementById('setup').style.display='none';
+  document.getElementById('app').style.display='block';
+  setDate();
+}
+function switchTab(t){
+  ['brief','yt'].forEach(x=>{
+    const el=document.getElementById(x+'Tab');
+    if(el)el.style.display=x===t?'block':'none';
+    const n=document.getElementById('nav-'+x);
+    if(n)n.classList.toggle('active',x===t);
+  });
+}
+function openSettings(){
+  document.getElementById('sKey').value=apiKey;
+  document.getElementById('sNotion').value=notionToken;
+  document.getElementById('ntog').classList.toggle('on',notifOn);
+  document.getElementById('settings').style.display='block';
+}
+function closeSettings(){document.getElementById('settings').style.display='none'}
+function saveSettings(){
+  const k=document.getElementById('sKey').value.trim();
+  const n=document.getElementById('sNotion').value.trim();
+  if(k){apiKey=k;localStorage.setItem('acoustic_key',k);}
+  if(n){notionToken=n;localStorage.setItem('acoustic_notion',n);}
+  closeSettings();
+}
+async function toggleNotif(){
+  const t=document.getElementById('ntog');
+  if(!notifOn){
+    try{
+      const p=await Notification.requestPermission();
+      if(p==='granted'){notifOn=true;t.classList.add('on');scheduleNotif();new Notification('Acoustic',{body:'Morning briefs enabled. See you at 8 AM.'});}
+    }catch(e){}
+  }else{notifOn=false;t.classList.remove('on');}
+}
+function scheduleNotif(){
+  if(!notifOn)return;
+  const now=new Date(),next=new Date();
+  next.setHours(8,0,0,0);
+  if(next<=now)next.setDate(next.getDate()+1);
+  setTimeout(()=>{
+    if(Notification.permission==='granted')new Notification('Acoustic',{body:'Your morning brief is ready. 10 minutes to stay sharp.'});
+    scheduleNotif();
+  },next-now);
+}
+function showOverlay(msg){
+  const o=document.getElementById('overlay');
+  o.classList.add('show');
+  document.getElementById('omsg').textContent=msg||'fetching sources';
+  wi=0;document.getElementById('ow').textContent=WORDS[0];
+  wt=setInterval(()=>{wi=(wi+1)%WORDS.length;document.getElementById('ow').textContent=WORDS[wi];},1800);
+}
+function hideOverlay(){clearInterval(wt);document.getElementById('overlay').classList.remove('show');}
+function setMsg(m){document.getElementById('omsg').textContent=m;}
+
+async function fetchRSS(url){
+  try{
+    const r=await fetch(url,{signal:AbortSignal.timeout(6000)});
+    const t=await r.text();
+    const p=new DOMParser();
+    const x=p.parseFromString(t,'text/xml');
+    const items=x.querySelectorAll('item,entry');
+    const out=[];
+    items.forEach((it,i)=>{
+      if(i>=4)return;
+      const title=it.querySelector('title')?.textContent?.trim()||'';
+      const desc=(it.querySelector('description,summary,content')?.textContent||'').replace(/<[^>]*>/g,'').slice(0,300);
+      const link=it.querySelector('link')?.textContent?.trim()||it.querySelector('link')?.getAttribute('href')||'';
+      if(title)out.push({title,desc,link});
+    });
+    return out;
+  }catch(e){return[];}
+}
+async function fetchTopic(topic){
+  const srcs=RSS[topic]||[];
+  const all=await Promise.all(srcs.map(fetchRSS));
+  return all.flat().slice(0,6);
+}
+
+async function callAI(prompt,maxTokens=1200){
+  const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
+    body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:[{role:'user',content:prompt}],max_tokens:maxTokens,temperature:0.7})
+  });
+  const d=await r.json();
+  if(d.error)throw new Error(d.error.message||JSON.stringify(d.error));
+  return d.choices[0].message.content;
+}
+
+async function generateBrief(){
+  if(!apiKey){openSettings();return;}
+  document.getElementById('genBtn').disabled=true;
+  showOverlay('fetching your sources');
+  try{
+    const day=Math.floor((new Date()-new Date(new Date().getFullYear(),0,0))/86400000);
+    const topics=TOPICS[day%4];
+    const curious=CURIOUS[day%CURIOUS.length];
+    const today=new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+    setMsg('reading articles');
+    const [c1,c2,c3,cc]=await Promise.all([fetchTopic(topics[0]),fetchTopic(topics[1]),fetchTopic(topics[2]),fetchTopic(curious)]);
+    const arts=a=>a.length>0?a.map(x=>`- ${x.title}: ${x.desc}`).join('\n'):'(use your knowledge of recent developments)';
+    setMsg('synthesising with AI');
+    const signal=await callAI(`You are writing for an Indian MBA student (beginner, intellectually curious). Today: ${today}.
+Write THE SIGNAL: exactly 5 sentences covering these topics: ${topics.join(', ')} and ${curious}.
+Written like a smart friend texting you what matters. Use jargon but define inline. India angle where relevant.
+Articles: ${arts([...c1.slice(0,2),...c2.slice(0,2),...c3.slice(0,2)])}
+Output ONLY the 5 sentences, no labels.`,400);
+    setMsg('writing deep dives');
+    const dives=await Promise.all([{t:topics[0],c:c1},{t:topics[1],c:c2},{t:topics[2],c:c3}].map(async({t,c})=>{
+      const raw=await callAI(`Deep dive for Indian MBA student. Beginner but wants vocabulary — use jargon, define inline.
+Topic: ${t}. Today: ${today}.
+Articles: ${arts(c)}
+Format EXACTLY:
+HEADLINE: [max 10 words]
+BODY: [200 words connected prose, jargon+definition, India angle, no bullets]
+LINK: [best URL or blank]`,500);
+      return{
+        topic:t,
+        headline:raw.match(/HEADLINE:\s*(.+)/)?.[1]?.trim()||t,
+        body:raw.match(/BODY:\s*([\s\S]+?)(?=LINK:|$)/)?.[1]?.trim()||'',
+        link:(raw.match(/LINK:\s*(.+)/)?.[1]?.trim()||c[0]?.link||'').startsWith('http')?(raw.match(/LINK:\s*(.+)/)?.[1]?.trim()||c[0]?.link||''):(c[0]?.link||'')
+      };
+    }));
+    setMsg('finding your rabbit hole');
+    const rabbit=await callAI(`Curious Indian MBA student. Topic: ${curious}. ${cc.length>0?'Articles: '+arts(cc):''}
+Write THE RABBIT HOLE: 150-word thought piece on ${curious}. Pure observation, no structure, no bullets.
+Like a beautiful paragraph from a book. Surprising. India-relevant if possible. Build vocabulary naturally.
+Output ONLY the paragraph.`,350);
+    hideOverlay();
+    renderBrief({signal,dives,rabbit:{topic:curious,text:rabbit},topics,today});
+  }catch(e){
+    hideOverlay();
+    document.getElementById('briefContent').innerHTML=`<div style="padding:24px"><div class="err">Error: ${e.message}<br><br>Check your Groq API key in Settings.</div></div>`;
+    document.getElementById('briefContent').style.display='block';
+    document.getElementById('emptyState').style.display='none';
+  }
+  document.getElementById('genBtn').disabled=false;
+}
+
+function renderBrief({signal,dives,rabbit,topics,today}){
+  const dh=dives.map(d=>`
+    <div class="dive-card">
+      <div class="dive-topic">${d.topic}</div>
+      <div class="dive-headline">${d.headline}</div>
+      <div class="dive-body">${d.body}</div>
+      <div class="dive-footer">
+        ${d.link?`<a class="read-link" href="${d.link}" target="_blank">Read full article →</a>`:'<span></span>'}
+        <button class="save-btn" onclick="saveToNotion('${encodeURIComponent(d.headline)}','${encodeURIComponent(d.body)}','${encodeURIComponent(d.link)}',this)">Save</button>
+      </div>
+    </div>`).join('');
+  const html=`
+    <div class="signal-wrap">
+      <div class="kicker">The Signal</div>
+      <div class="signal-text">${signal.replace(/\n/g,' ')}</div>
+    </div>
+    <div>
+      <div style="padding:16px 20px 0;font-size:10px;font-family:'DM Mono',monospace;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)">Today's Deep Dives — ${topics.join(' · ')}</div>
+      ${dh}
+    </div>
+    <div class="rabbit-wrap">
+      <div class="rabbit-label">The Rabbit Hole</div>
+      <div class="rabbit-topic">Today: ${rabbit.topic}</div>
+      <div class="rabbit-body">${rabbit.text}</div>
+    </div>`;
+  document.getElementById('briefContent').innerHTML=html;
+  document.getElementById('briefContent').style.display='block';
+  document.getElementById('emptyState').style.display='none';
+  localStorage.setItem('acoustic_brief_'+todayKey(),html);
+}
+
+async function saveToNotion(h,b,l,btn){
+  if(!notionToken){btn.textContent='Add token in Settings';setTimeout(()=>btn.textContent='Save',2000);return;}
+  btn.textContent='Saving...';btn.disabled=true;
+  try{
+    const sr=await fetch('https://api.notion.com/v1/search',{method:'POST',headers:{'Authorization':'Bearer '+notionToken,'Notion-Version':'2022-06-28','Content-Type':'application/json'},body:JSON.stringify({query:'Reading List',filter:{value:'database',property:'object'}})});
+    const sd=await sr.json();
+    const db=sd.results?.[0];
+    if(!db)throw new Error('Reading List not found');
+    await fetch('https://api.notion.com/v1/pages',{method:'POST',headers:{'Authorization':'Bearer '+notionToken,'Notion-Version':'2022-06-28','Content-Type':'application/json'},body:JSON.stringify({parent:{database_id:db.id},properties:{Title:{title:[{text:{content:decodeURIComponent(h)}}]},Type:{select:{name:'Article'}},Link:{url:decodeURIComponent(l)||null},Summary:{rich_text:[{text:{content:decodeURIComponent(b).slice(0,500)}}]}}})});
+    btn.textContent='✓ Saved';
+  }catch(e){btn.textContent='Error';btn.disabled=false;setTimeout(()=>btn.textContent='Save',2000);}
+}
+
+async function summariseYT(){
+  const url=document.getElementById('ytUrl').value.trim();
+  if(!url||!apiKey){if(!apiKey)openSettings();return;}
+  const btn=document.getElementById('ytBtn');
+  btn.disabled=true;
+  document.getElementById('ytResult').innerHTML=`<div style="padding:20px;display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px;font-family:'DM Mono',monospace"><div class="spin"></div>Analysing...</div>`;
+  try{
+    const vid=url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1]||'';
+    let transcript=null;
+    if(vid){
+      try{
+        const r=await fetch(`https://yt.lemnoslife.com/videos?part=transcript&id=${vid}`,{signal:AbortSignal.timeout(5000)});
+        const d=await r.json();
+        const items=d?.items?.[0]?.transcript?.transcriptList?.[0]?.transcript;
+        if(items?.length)transcript=items.map(i=>i.text).join(' ').slice(0,10000);
+      }catch(e){}
+    }
+    const prompt=transcript
+      ?`MBA analyst at ISB India. Analyse this YouTube transcript.
+Format EXACTLY:
+HEADLINE: [one line summary]
+SUMMARY:
+- [point 1]
+- [point 2]
+- [point 3]
+- [point 4]
+- [point 5]
+TAKEAWAYS:
+- [insight 1]
+- [insight 2]
+- [insight 3]
+FRAMEWORKS: [business frameworks mentioned or "none"]
+VERDICT: [YES — worth watching because X] or [SKIP — because X]
+Transcript: ${transcript}`
+      :`MBA analyst. Video: ${url}
+HEADLINE: [what this is about]
+SUMMARY:
+- [point 1]
+- [point 2]
+- [point 3]
+TAKEAWAYS:
+- [insight 1]
+- [insight 2]
+FRAMEWORKS: [relevant concepts]
+VERDICT: [honest take]`;
+    const res=await callAI(prompt,600);
+    const hl=res.match(/HEADLINE:\s*(.+)/)?.[1]?.trim()||'Video Summary';
+    const ss=res.match(/SUMMARY:\s*([\s\S]+?)(?=TAKEAWAYS:|$)/)?.[1]||'';
+    const ts=res.match(/TAKEAWAYS:\s*([\s\S]+?)(?=FRAMEWORKS:|VERDICT:|$)/)?.[1]||'';
+    const fw=res.match(/FRAMEWORKS:\s*(.+)/)?.[1]?.trim()||'';
+    const vd=res.match(/VERDICT:\s*(.+)/)?.[1]?.trim()||'';
+    const pb=t=>t.split('\n').filter(l=>l.trim().match(/^[-•*]|^\d+\./)).map(l=>l.replace(/^[-•*\d.]+\s*/,'').trim()).filter(Boolean);
+    const sb=pb(ss),tb=pb(ts);
+    const isY=vd.toLowerCase().includes('yes')||vd.toLowerCase().includes('worth');
+    document.getElementById('ytResult').innerHTML=`
+      <div class="yt-card">
+        <div class="yt-head"><span class="yt-label">Summary</span><span style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">${vid||'video'}</span></div>
+        <div class="yt-body">
+          <div style="font-family:'Playfair Display',serif;font-size:17px;color:var(--paper);line-height:1.4;margin-bottom:14px">${hl}</div>
+          <div class="yt-sh">Key Points</div>${sb.map(b=>`<div class="yt-bullet">${b}</div>`).join('')}
+          ${tb.length?`<div class="yt-sh">Takeaways</div>${tb.map(b=>`<div class="yt-bullet">${b}</div>`).join('')}`:''}
+          ${fw&&fw!=='none'?`<div class="yt-sh">Frameworks</div><div class="yt-bullet">${fw}</div>`:''}
+          ${vd?`<div class="yt-sh">Verdict</div><div class="verdict ${isY?'v-yes':'v-no'}">${vd}</div>`:''}
+        </div>
+      </div>`;
+  }catch(e){document.getElementById('ytResult').innerHTML=`<div class="err">Error: ${e.message}</div>`;}
+  btn.disabled=false;
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape')closeSettings();
+  if(e.key==='Enter'&&document.getElementById('setup').style.display!=='none')startApp();
+});
+</script>
+</body>
+</html>

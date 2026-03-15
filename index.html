@@ -664,50 +664,30 @@ Output ONLY the paragraph.`,300);
 function renderBrief(dives,rabbit){
   dives.forEach((d,i)=>{
     const hlHtml=d.headlines.map(h=>`<li>${h}</li>`).join('');
-    const artsHtml=d.articles.map((a,ai)=>`
+    const artsHtml=d.articles.map((a,ai)=>{
+      const safetitle=encodeURIComponent(a.title||'');
+      const safebullets=encodeURIComponent([a.b1,a.b2,a.b3,a.b4,a.b5].filter(Boolean).join(' | '));
+      const safeurl=encodeURIComponent(a.url||'');
+      const bullets=[a.b1,a.b2,a.b3,a.b4,a.b5].filter(Boolean).map(b=>`<li>${b}</li>`).join('');
+      const srcHtml=a.src?`<span class="asource">${a.src}</span>`:'';
+      const linkHtml=a.url?`<a class="alink" href="${a.url}" target="_blank" onclick="event.stopPropagation()" style="font-size:9px;opacity:.8;letter-spacing:.04em">↗ Read article</a>`:'';
+      const footlinkHtml=a.url?`<a class="alink" href="${a.url}" target="_blank">↗ Read full article</a>`:'<span></span>';
+      return `
       <div class="artcard">
         <div class="artcard-hdr" onclick="toggleArt('ab${i}${ai}','at${i}${ai}')">
           <div class="adot"></div>
           <div class="atitle-wrap">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
-              ${a.src?`<span class="asource">${a.src}</span>`:''}
-              ${a.url?`<a class="alink" href="${a.url}" target="_blank" onclick="event.stopPropagation()" style="font-size:9px;opacity:.7">↗ Read</a>`:''}
-            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;flex-wrap:wrap">${srcHtml}${linkHtml}</div>
             <div class="ahl">${a.title}</div>
           </div>
           <span class="atoggle" id="at${i}${ai}">▾</span>
         </div>
         <div class="artcard-body" id="ab${i}${ai}">
-          <ul class="ablist">
-            ${[a.b1,a.b2,a.b3,a.b4,a.b5].filter(Boolean).map(b=>`<li>${b}</li>`).join('')}
-          </ul>
-          <div class="artfoot">
-            ${a.url?`<a class="alink" href="${a.url}" target="_blank">Read full article →</a>`:'<span></span>'}
-            <button class="savechip" onclick="saveN('${encodeURIComponent(a.title)}','${encodeURIComponent([a.b1,a.b2,a.b3].filter(Boolean).join(' | '))}','${encodeURIComponent(a.url)}',this)">Save</button>
-          </div>
+          <ul class="ablist">${bullets}</ul>
+          <div class="artfoot">${footlinkHtml}<button class="savechip" onclick="saveN('${safetitle}','${safebullets}','${safeurl}',this)">Save</button></div>
         </div>
-      </div>`).join('');
-
-    document.getElementById(`p${i}`).innerHTML=`
-      <div class="sumcard">
-        <div class="sumcard-hdr">
-          <span class="sum-topic">${d.topic}</span>
-          <span class="sum-count">${d.headlines.length} stories today</span>
-        </div>
-        <ul class="sum-bullets">${hlHtml}</ul>
-      </div>
-      <div class="artslabel">Articles</div>
-      ${artsHtml}
-      <div class="pbottom"></div>`;
-  });
-  document.getElementById('p4').innerHTML=`
-    <div class="rabbit">
-      <div class="rlabel">The Rabbit Hole</div>
-      <div class="rtopic">Today: ${rabbit.topic}</div>
-      <div class="rtext">${rabbit.text}</div>
-    </div>`;
-}
-
+      </div>`;
+    }).join('');
 function loadSaved(){
   const s=localStorage.getItem('ac3_brief_'+todayKey());
   const c=localStorage.getItem('ac3_ctx_'+todayKey());

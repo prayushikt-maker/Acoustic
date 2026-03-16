@@ -570,8 +570,8 @@ a{color:inherit;text-decoration:none}
   <div class="stag">Intelligence Brief</div>
   <div class="scard">
     <label class="lbl">Groq API Key</label>
-    <input class="inp" type="password" id="setupKey" placeholder="gsk_..." autocomplete="off">
-    <p class="hint">Free from <a href="https://console.groq.com" target="_blank">console.groq.com</a> — sign in, click API Keys, create key.</p>
+    <input class="inp" type="password" id="setupKey" placeholder="nvapi-..." autocomplete="off">
+    <p class="hint">Free from <a href="https://build.nvidia.com" target="_blank">build.nvidia.com</a> — sign in, click your profile → Get API Key.</p>
     <button class="pbtn" id="setupBtn" onclick="startApp()">Enter Acoustic →</button>
   </div>
 </div>
@@ -590,7 +590,7 @@ a{color:inherit;text-decoration:none}
     <button class="spc" onclick="closeSettings()">close</button>
   </div>
   <span class="spsec">Groq API Key</span>
-  <input class="inp" type="password" id="sKey" placeholder="gsk_...">
+  <input class="inp" type="password" id="sKey" placeholder="nvapi-...">
   <span class="spsec">Notion Token (optional)</span>
   <input class="inp" type="password" id="sNotion" placeholder="secret_...">
   <div class="trow">
@@ -785,9 +785,9 @@ const TSRC={
 
 /* ─── INIT ─── */
 window.addEventListener('load',()=>{
-  const k=localStorage.getItem('ac4_key');
-  const n=localStorage.getItem('ac4_notion');
-  const th=localStorage.getItem('ac4_theme')||'dark';
+  const k=localStorage.getItem('ac4_nvkey');
+  const n=localStorage.getItem('ac4_nv_notion');
+  const th=localStorage.getItem('ac4_nv_theme')||'dark';
   if(k){apiKey=k;showApp();}
   if(n)notionToken=n;
   document.documentElement.setAttribute('data-theme',th);
@@ -813,7 +813,7 @@ function setDate(){
 function startApp(){
   const k=document.getElementById('setupKey').value.trim();
   if(!k||k.length<10)return;
-  apiKey=k;localStorage.setItem('ac4_key',k);showApp();
+  apiKey=k;localStorage.setItem('ac4_nvkey',k);showApp();
 }
 function showApp(){
   document.getElementById('setup').style.display='none';
@@ -827,7 +827,7 @@ function toggleTheme(){
   const cur=document.documentElement.getAttribute('data-theme');
   const next=cur==='dark'?'light':'dark';
   document.documentElement.setAttribute('data-theme',next);
-  localStorage.setItem('ac4_theme',next);
+  localStorage.setItem('ac4_nv_theme',next);
   document.getElementById('thTog').classList.toggle('on',next==='dark');
 }
 
@@ -841,8 +841,8 @@ function closeSettings(){document.getElementById('sp').style.display='none'}
 function saveSettings(){
   const k=document.getElementById('sKey').value.trim();
   const n=document.getElementById('sNotion').value.trim();
-  if(k){apiKey=k;localStorage.setItem('ac4_key',k);}
-  if(n){notionToken=n;localStorage.setItem('ac4_notion',n);}
+  if(k){apiKey=k;localStorage.setItem('ac4_nvkey',k);}
+  if(n){notionToken=n;localStorage.setItem('ac4_nv_notion',n);}
   closeSettings();
 }
 
@@ -947,11 +947,11 @@ async function fetchTopic(topic){
 
 /* ─── AI ─── */
 async function callAI(prompt,max=1600){
-  const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+  const r=await fetch('https://integrate.api.nvidia.com/v1/chat/completions',{
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
     body:JSON.stringify({
-      model:'llama-3.3-70b-versatile',
+      model:'moonshotai/kimi-k2.5',  // Kimi K2 via NVIDIA NIM
       messages:[{role:'user',content:prompt}],
       max_tokens:max,temperature:0.7
     })
@@ -1065,11 +1065,11 @@ Surprising idea, India-relevant if natural. Rich vocabulary defined inline.
 Output ONLY the paragraph.`,280);
 
     briefCtx=`Acoustic Brief ${today}.\n${diveResults.map(d=>`${d.topic}: ${d.headlines.join('; ')}`).join('\n')}\nRabbit Hole topic: ${curious}`;
-    localStorage.setItem('ac4_ctx_'+todayKey(),briefCtx);
+    localStorage.setItem('ac4_nv_ctx_'+todayKey(),briefCtx);
 
     hideLoad();
     renderBrief(diveResults,{topic:curious,text:rabbit});
-    localStorage.setItem('ac4_brief_'+todayKey(),JSON.stringify({dives:diveResults,rabbit:{topic:curious,text:rabbit}}));
+    localStorage.setItem('ac4_nv_brief_'+todayKey(),JSON.stringify({dives:diveResults,rabbit:{topic:curious,text:rabbit}}));
   }catch(e){
     hideLoad();
     document.getElementById('p0').innerHTML=`<div class="errbox">Error: ${e.message}<br><br>Check your Groq API key in Settings.</div>`;
@@ -1127,8 +1127,8 @@ function renderBrief(dives,rabbit){
 }
 
 function loadSaved(){
-  const s=localStorage.getItem('ac4_brief_'+todayKey());
-  const ctx=localStorage.getItem('ac4_ctx_'+todayKey());
+  const s=localStorage.getItem('ac4_nv_brief_'+todayKey());
+  const ctx=localStorage.getItem('ac4_nv_ctx_'+todayKey());
   if(s){try{const{dives,rabbit}=JSON.parse(s);renderBrief(dives,rabbit);if(ctx)briefCtx=ctx;}catch(e){}}
 }
 
@@ -1204,10 +1204,10 @@ async function sendChat(){
     const sys=`You are a personal knowledge annotator for an Indian MBA student at ISB Hyderabad.
 ${briefCtx?`Today's brief:\n${briefCtx}\n`:''}
 Rules: Every answer must include at least 2 specific facts — names, numbers, companies, dates, percentages. Give India-relevant examples whenever possible. Max 5 sentences. Define jargon inline on first use. Write like a smart senior colleague, not a textbook.`;
-    const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+    const r=await fetch('https://integrate.api.nvidia.com/v1/chat/completions',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
-      body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:[{role:'system',content:sys},...chatHistory],max_tokens:400,temperature:0.7})
+      body:JSON.stringify({model:'moonshotai/kimi-k2.5',  // Kimi K2 via NVIDIA NIMmessages:[{role:'system',content:sys},...chatHistory],max_tokens:400,temperature:0.7})
     });
     const d=await r.json();
     if(d.error)throw new Error(d.error.message);

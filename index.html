@@ -184,9 +184,9 @@ a{color:inherit;text-decoration:none}
   <div class="slogo">Acoustic</div>
   <div class="stag">Intelligence Brief</div>
   <div class="scard">
-    <label class="lbl">NVIDIA API Key</label>
-    <input class="inp" type="password" id="setupKey" placeholder="nvapi-..." autocomplete="off">
-    <p class="hint">Free from <a href="https://build.nvidia.com" target="_blank">build.nvidia.com</a> — sign in, click your profile, Get API Key.</p>
+    <label class="lbl">Groq API Key</label>
+    <input class="inp" type="password" id="setupKey" placeholder="gsk_..." autocomplete="off">
+    <p class="hint">Free from <a href="https://console.groq.com" target="_blank">console.groq.com</a> — sign in, click API Keys, create key.</p>
     <button class="pbtn" id="setupBtn" onclick="startApp()">Enter Acoustic</button>
   </div>
 </div>
@@ -200,8 +200,8 @@ a{color:inherit;text-decoration:none}
     <div class="spt">Settings</div>
     <button class="spc" onclick="closeSettings()">close</button>
   </div>
-  <span class="spsec">NVIDIA API Key</span>
-  <input class="inp" type="password" id="sKey" placeholder="nvapi-...">
+  <span class="spsec">Groq API Key</span>
+  <input class="inp" type="password" id="sKey" placeholder="gsk_...">
   <span class="spsec">Notion Token (optional)</span>
   <input class="inp" type="password" id="sNotion" placeholder="secret_...">
   <div class="trow">
@@ -449,20 +449,19 @@ async function fetchTopic(topic){
 }
 async function callAI(prompt,max){
   max=max||1600;
-  var r=await fetch('https://integrate.api.nvidia.com/v1/chat/completions',{
+  var r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
     body:JSON.stringify({
-      model:'moonshotai/kimi-k2.5',
-      messages:[{role:'user',content:[{type:'text',text:prompt}]}],
+      model:'llama-3.3-70b-versatile',
+      messages:[{role:'user',content:prompt}],
       max_tokens:max,
-      temperature:0.6,
-      chat_template_kwargs:{thinking:false}
+      temperature:0.6
     })
   });
   var d=await r.json();
   if(d.error)throw new Error(d.error.message||JSON.stringify(d.error));
-  if(!d.choices||!d.choices[0])throw new Error('No response from API. Check your NVIDIA key at build.nvidia.com');
+  if(!d.choices||!d.choices[0])throw new Error('No response from API. Check your Groq key at console.groq.com');
   return d.choices[0].message.content;
 }
 async function generateBrief(){
@@ -499,7 +498,7 @@ async function generateBrief(){
     localStorage.setItem('ac_brief_'+todayKey(),JSON.stringify({dives:diveResults,rabbit:{topic:curious,text:rabbit}}));
   }catch(e){
     hideLoad();
-    document.getElementById('p0').innerHTML='<div class="errbox">Error: '+e.message+'<br><br>Check your NVIDIA API key in Settings.</div>';
+    document.getElementById('p0').innerHTML='<div class="errbox">Error: '+e.message+'<br><br>Check your Groq API key in Settings.</div>';
   }
   document.getElementById('genBtn').disabled=false;
 }
@@ -549,7 +548,7 @@ async function sendChat(){
   try{
     var sys='You are a personal knowledge annotator for an Indian MBA student at ISB Hyderabad.\n'+(briefCtx?'Today\'s brief:\n'+briefCtx+'\n':'')+'Rules: Every answer must include at least 2 specific facts — names, numbers, companies, dates. Give India-relevant examples. Max 5 sentences. Define jargon inline. Write like a smart senior colleague.';
     var msgs=[{role:'system',content:[{type:'text',text:sys}]}].concat(chatHistory.map(function(m){return {role:m.role,content:[{type:'text',text:m.content}]};}));
-    var r=await fetch('https://integrate.api.nvidia.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},body:JSON.stringify({model:'moonshotai/kimi-k2.5',messages:msgs,max_tokens:400,temperature:0.6,chat_template_kwargs:{thinking:false}})});
+    var r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:msgs,max_tokens:400,temperature:0.6})});
     var d=await r.json();if(d.error)throw new Error(d.error.message);
     var reply=d.choices[0].message.content;chatHistory.push({role:'assistant',content:reply});
     var fmt=reply.replace(/\*\*(.*?)\*\*/g,'<b>$1</b>').replace(/\*(.*?)\*/g,'$1').replace(/\n/g,'<br>');

@@ -452,10 +452,17 @@ async function callAI(prompt,max){
   var r=await fetch('https://integrate.api.nvidia.com/v1/chat/completions',{
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
-    body:JSON.stringify({model:'moonshotai/kimi-k2.5',messages:[{role:'user',content:prompt}],max_tokens:max,temperature:0.7})
+    body:JSON.stringify({
+      model:'moonshotai/kimi-k2.5',
+      messages:[{role:'user',content:[{type:'text',text:prompt}]}],
+      max_tokens:max,
+      temperature:0.6,
+      chat_template_kwargs:{thinking:false}
+    })
   });
   var d=await r.json();
   if(d.error)throw new Error(d.error.message||JSON.stringify(d.error));
+  if(!d.choices||!d.choices[0])throw new Error('No response from API. Check your NVIDIA key at build.nvidia.com');
   return d.choices[0].message.content;
 }
 async function generateBrief(){
@@ -541,7 +548,8 @@ async function sendChat(){
   msgs.scrollTop=msgs.scrollHeight;chatHistory.push({role:'user',content:q});
   try{
     var sys='You are a personal knowledge annotator for an Indian MBA student at ISB Hyderabad.\n'+(briefCtx?'Today\'s brief:\n'+briefCtx+'\n':'')+'Rules: Every answer must include at least 2 specific facts — names, numbers, companies, dates. Give India-relevant examples. Max 5 sentences. Define jargon inline. Write like a smart senior colleague.';
-    var r=await fetch('https://integrate.api.nvidia.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},body:JSON.stringify({model:'moonshotai/kimi-k2.5',messages:[{role:'system',content:sys}].concat(chatHistory),max_tokens:400,temperature:0.7})});
+    var msgs=[{role:'system',content:[{type:'text',text:sys}]}].concat(chatHistory.map(function(m){return {role:m.role,content:[{type:'text',text:m.content}]};}));
+    var r=await fetch('https://integrate.api.nvidia.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},body:JSON.stringify({model:'moonshotai/kimi-k2.5',messages:msgs,max_tokens:400,temperature:0.6,chat_template_kwargs:{thinking:false}})});
     var d=await r.json();if(d.error)throw new Error(d.error.message);
     var reply=d.choices[0].message.content;chatHistory.push({role:'assistant',content:reply});
     var fmt=reply.replace(/\*\*(.*?)\*\*/g,'<b>$1</b>').replace(/\*(.*?)\*/g,'$1').replace(/\n/g,'<br>');
